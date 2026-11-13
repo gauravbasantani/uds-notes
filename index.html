@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tailwind UDS notes · Gaurav Basantani</title>
+<meta name="description" content="How I grew ASU's Universal Design System into a Tailwind-based system with 70+ components: the guidelines, the version control, the team's Figma-to-code pipeline, and what I learned about making a system readable by AI.">
+<meta name="color-scheme" content="light dark">
+<style>
+:root {
+  --bg: #fbfaf7;
+  --surface: #ffffff;
+  --text: #1b1d22;
+  --muted: #5b6170;
+  --line: #e3e1db;
+  --accent: #1d4ed8;
+  --accent-soft: #eef2fd;
+  --note-bg: #fff7e0;
+  --note-text: #5c4300;
+  --note-line: #ecd48a;
+  --code-bg: #f1efe9;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #16181d;
+    --surface: #1e2128;
+    --text: #e9eaee;
+    --muted: #a3a9b6;
+    --line: #2e323b;
+    --accent: #93b4ff;
+    --accent-soft: #1f2a44;
+    --note-bg: #2c2512;
+    --note-text: #f1d892;
+    --note-line: #54461f;
+    --code-bg: #262a32;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+.wrap { max-width: 720px; margin: 0 auto; padding: 0 16px; }
+header.top { padding: 40px 0 8px; }
+.eyebrow { font-size: 14px; color: var(--muted); margin: 0 0 12px; }
+.eyebrow a { color: inherit; }
+h1 { font-size: 34px; line-height: 1.15; margin: 0 0 14px; letter-spacing: -0.01em; }
+h2 { font-size: 24px; line-height: 1.25; margin: 0 0 12px; }
+h3 { font-size: 18px; line-height: 1.3; margin: 24px 0 8px; }
+p { margin: 0 0 14px; }
+.lede { font-size: 19px; color: var(--muted); }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+.links { display: flex; flex-wrap: wrap; gap: 8px 16px; margin: 18px 0 0; padding: 0; list-style: none; font-size: 15px; }
+nav.toc { margin: 28px 0 8px; padding: 14px 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; font-size: 15px; }
+nav.toc p { margin: 0 0 6px; color: var(--muted); }
+nav.toc ol { margin: 0; padding-left: 20px; }
+section { padding: 32px 0 8px; border-top: 1px solid var(--line); margin-top: 32px; }
+ul, ol { padding-left: 22px; margin: 0 0 14px; }
+li { margin: 0 0 6px; }
+code { font: 0.9em/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin: 18px 0; padding: 0; list-style: none; }
+.facts li { margin: 0; padding: 12px 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; font-size: 15px; color: var(--muted); }
+.facts strong { display: block; font-size: 22px; color: var(--text); line-height: 1.2; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 18px 16px 6px; margin: 18px 0; }
+.card h3 { margin-top: 4px; }
+.tag { display: inline-block; font-size: 13px; line-height: 1.3; padding: 3px 8px; border-radius: 999px; background: var(--note-bg); color: var(--note-text); border: 1px solid var(--note-line); margin: 0 0 6px; }
+.card dl { margin: 0 0 12px; }
+.card dt { font-weight: 600; font-size: 15px; margin-top: 10px; }
+.card dd { margin: 2px 0 0; }
+.note { background: var(--note-bg); color: var(--note-text); border: 1px solid var(--note-line); border-radius: 10px; padding: 12px 14px; font-size: 15px; margin: 16px 0; }
+.lesson { font-size: 20px; line-height: 1.4; border-left: 3px solid var(--accent); padding: 2px 0 2px 14px; margin: 8px 0 18px; }
+.steps { counter-reset: s; list-style: none; padding: 0; }
+.steps li { counter-increment: s; position: relative; padding-left: 38px; margin-bottom: 12px; }
+.steps li::before { content: counter(s); position: absolute; left: 0; top: 1px; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: 14px; font-weight: 700; display: grid; place-items: center; }
+footer { border-top: 1px solid var(--line); margin-top: 40px; padding: 24px 0 48px; font-size: 15px; color: var(--muted); }
+@media (min-width: 700px) {
+  header.top { padding-top: 64px; }
+  h1 { font-size: 42px; }
+  .facts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <p class="eyebrow"><a href="https://gauravbasantani.com">Gaurav Basantani</a> · design system notes</p>
+  <h1>Tailwind UDS: how I grew ASU's design system</h1>
+  <p class="lede">The case study on my site covers the tokens and why we chose Tailwind. These notes cover the rest: how the guidelines are written, how the files stay in order, and what I learned about making a system an AI can read.</p>
+  <ul class="links">
+    <li><a href="https://gauravbasantani.com/work/uds">Case study on my site</a></li>
+    <li><a href="https://tailwinduds.figma.site/">Figma prototype</a></li>
+  </ul>
+</header>
+
+<nav class="toc" aria-label="On this page">
+  <p>On this page</p>
+  <ol>
+    <li><a href="#what">What UDS is and what I did</a></li>
+    <li><a href="#decisions">Process and decisions</a></li>
+    <li><a href="#versions">Keeping the files in order</a></li>
+    <li><a href="#a11y">Accessibility: WCAG 2.2</a></li>
+    <li><a href="#guidelines">How the guidelines are written</a></li>
+    <li><a href="#pipeline">Figma to code: a team project</a></li>
+    <li><a href="#ai">Making a system readable by AI</a></li>
+  </ol>
+</nav>
+
+<section id="what">
+  <h2>What UDS is and what I did</h2>
+  <p>ASU's Universal Design System (UDS) was made for websites, in Bootstrap. Our team at ASU's Learning Engineering Institute builds AI tools for teachers and students. Those are apps, not websites, and every AI coding tool writes Tailwind.</p>
+  <p>So I extended UDS into a Tailwind-based system. I didn't start from zero. I kept ASU's brand and grew the system into something apps can use.</p>
+  <ul class="facts">
+    <li><strong>70+</strong>production-ready components</li>
+    <li><strong>Figma</strong>Variables and Auto Layout</li>
+    <li><strong>WCAG 2.2</strong>on desktop and mobile</li>
+    <li><strong>Written</strong>usage guidelines</li>
+  </ul>
+  <p>I also introduced version control in Figma across LEI projects, with branching and naming rules. The system is used in ReQuesta and the AIX Framework app.</p>
+</section>
+
+<section id="decisions">
+  <h2>Process and decisions</h2>
+  <p>The case study has the timeline and the token structure. Here are the decisions behind it, in short.</p>
+  <h3>Test before committing</h3>
+  <p>Before picking Tailwind, I prompted AI tools and generated real component code with MCP. The output was Tailwind every time. That settled it.</p>
+  <h3>Stretch, don't detach</h3>
+  <p>The old components were rigid. When a requirement changed, I had to detach the component and rebuild it. Every component is now built with Auto Layout and properties, so it stretches to fit instead of breaking.</p>
+  <h3>Variables, not hand-typed values</h3>
+  <p>Colors, spacing and type live in Figma Variables. Components only point at them, so they switch to dark mode without changes, and a value is changed in one place.</p>
+  <h3>Names developers already know</h3>
+  <p>I asked a developer how the class names should feel before writing any. They knew Bootstrap, so we kept it short: <code>btn btn-brand</code>, with Tailwind underneath.</p>
+  <h3>Every state drawn</h3>
+  <p>Each component shows default, hover, focus and disabled. Focus is where accessibility usually breaks, so it is never left for later.</p>
+</section>
+
+<section id="versions">
+  <h2>Keeping the files in order</h2>
+  <p>Before I set it up, LEI had no agreed way to track design changes. Several people worked in the same files.</p>
+  <p>I introduced version control in Figma as a way of working across LEI projects, not as a one-product fix. I set the branching, versioning and naming rules, so:</p>
+  <ul>
+    <li>design changes stay tracked,</li>
+    <li>earlier releases stay intact and usable while new design ships,</li>
+    <li>components stay reusable when several people work in the same files.</li>
+  </ul>
+  <p>On ReQuesta, which is built on the system, that looks like a Design Log with numbered versions (v1.0.1 on Jul 8, v2.0.0 on Aug 19, v2.0.1 on Aug 26, 2026) and one naming grammar for components: <code>type_property_descriptor</code>.</p>
+  <p>This is the part people skip. Building a system is common. Keeping it in one piece while several projects use it at once is the harder half.</p>
+</section>
+
+<section id="a11y">
+  <h2>Accessibility: WCAG 2.2</h2>
+  <p>I kept every product WCAG 2.2 compliant on desktop and mobile. In the system that means keyboard navigation, visible focus indicators and screen-reader labels, built into the components.</p>
+  <p>The brand colors need care. ASU gold (<code>#FFC627</code>) on white is 1.57:1, far below the 4.5:1 that text needs. So gold is never text on a light background.</p>
+</section>
+
+<section id="guidelines">
+  <h2>How the guidelines are written</h2>
+  <p>Usage notes and class names sit right next to each component in Figma. Every component goes the same way: definition, states, annotation, handoff.</p>
+  <p>When I write a guideline, I follow a few rules:</p>
+  <ul>
+    <li><strong>Plain words.</strong> Short lines a new designer or developer can read in a minute.</li>
+    <li><strong>Rules you can check.</strong> "Text is at least 4.5:1", not "use good contrast".</li>
+    <li><strong>Say when not to use it.</strong> Most mistakes are the right component in the wrong place.</li>
+    <li><strong>Show the code name.</strong> The class a developer types sits next to the drawing.</li>
+  </ul>
+  <p>Three short examples follow. They show the format. They are written for this page from what is already public.</p>
+  <div class="note">Gaurav to confirm: can this be public? The real guideline text and screenshots from the team's Figma library are left out until then.</div>
+
+  <article class="card" aria-labelledby="ex-button">
+    <span class="tag">Example write-up, Gaurav to approve</span>
+    <h3 id="ex-button">Button</h3>
+    <dl>
+      <dt>Use it for</dt>
+      <dd>An action the person takes now: save, send, continue.</dd>
+      <dt>Variants and states</dt>
+      <dd>Solid, Ghost and Outline. Brand, Secondary, Success and Danger. Default, hover, focus and disabled.</dd>
+      <dt>Do</dt>
+      <dd>Use one Solid Brand button for the main action on a screen. Write the label as the action: "Save draft", not "Click here".</dd>
+      <dt>Don't</dt>
+      <dd>Use Danger for anything other than deleting or actions that can't be undone. Put gold text on a light background.</dd>
+      <dt>Accessibility</dt>
+      <dd>A focus ring you can see, never hidden behind a sticky header (WCAG 2.2, 2.4.11). Works with Enter and Space.</dd>
+      <dt>Code</dt>
+      <dd><code>&lt;button class="btn btn-brand"&gt;Save draft&lt;/button&gt;</code></dd>
+    </dl>
+  </article>
+
+  <article class="card" aria-labelledby="ex-alert">
+    <span class="tag">Example write-up, Gaurav to approve</span>
+    <h3 id="ex-alert">Alert</h3>
+    <dl>
+      <dt>Use it for</dt>
+      <dd>A message about the page or a task: it worked, something to know, or something went wrong.</dd>
+      <dt>Variants</dt>
+      <dd>Success, Info and Danger.</dd>
+      <dt>Do</dt>
+      <dd>Say what happened and what to do next, in one or two lines.</dd>
+      <dt>Don't</dt>
+      <dd>Let color carry the meaning on its own. Every alert has an icon and words too.</dd>
+      <dt>Accessibility</dt>
+      <dd>Screen readers announce it when it appears. Only errors interrupt; other alerts wait their turn.</dd>
+    </dl>
+  </article>
+
+  <article class="card" aria-labelledby="ex-input">
+    <span class="tag">Example write-up, Gaurav to approve</span>
+    <h3 id="ex-input">Text input</h3>
+    <dl>
+      <dt>Use it for</dt>
+      <dd>One line of text: a name, an email, a search.</dd>
+      <dt>Do</dt>
+      <dd>Always show a label above the field. Say how to fix an error, not only that there is one.</dd>
+      <dt>Don't</dt>
+      <dd>Use the placeholder as the label. It disappears as soon as someone types.</dd>
+      <dt>Accessibility</dt>
+      <dd>The label and error message are tied to the field, so screen readers read them. The error state uses words and an icon, not only a red border. Click targets are at least 24 by 24 pixels (WCAG 2.2, 2.5.8).</dd>
+      <dt>Code</dt>
+      <dd><code>&lt;input class="form-input" id="email" type="email"&gt;</code></dd>
+    </dl>
+  </article>
+</section>
+
+<section id="pipeline">
+  <h2>Figma to code: a team project</h2>
+  <p>The Figma-to-code pipeline is team work. It was led by Nishad Patne, senior designer at LEI, with three developers. My part was ReQuesta's components and UX copy.</p>
+  <p>The pipeline does three things:</p>
+  <ol class="steps">
+    <li><strong>Sync.</strong> The Figma API moves design tokens and UX copy between Figma and code, both ways, so each value has one source.</li>
+    <li><strong>Map.</strong> Code Connect links each Figma component to its real code, so AI tools find a component by what it is, not by how it looks.</li>
+    <li><strong>Audit.</strong> An MCP-driven pass flags detached copies, hardcoded values, and token, type, spacing and state mismatches.</li>
+  </ol>
+  <p>For my part, I turned ReQuesta's UX copy into Figma Variables that developers pull straight into the code. The copy stays the same in design and code instead of being retyped and drifting.</p>
+</section>
+
+<section id="ai">
+  <h2>Making a system readable by AI</h2>
+  <p>UDS started from one fact: AI tools write Tailwind, so the system should too. Code Connect took it further by telling AI tools which component is which.</p>
+  <p>I wanted to know what actually stops an AI from misusing a component. So I made a small follow-on experiment, the Proposal kit: a tiny design system for one solar proposal summary, with made-up data. I designed it and directed Claude Code, which wrote the code.</p>
+  <p class="lesson">The rules inside the components mattered more than the docs.</p>
+  <p>Twenty fresh Claude Code runs built the same page, half with the AI docs and half without. The four costly mistakes I designed against never happened, with or without docs. Every run read the components, and the required props did the work.</p>
+  <p>One slip still got through: a divider placed inside a definition list. It looked fine on screen and broke the markup for screen readers. It showed up in 5 of 10 runs without the docs and 1 of 10 with them. The docs never mention it, and these are small samples, so that is not proof the docs helped.</p>
+  <p>What I'd bring back to a system like UDS: put the rule in the component where you can, keep the docs short, and test with agents that have never seen the system.</p>
+  <ul class="links">
+    <li><a href="https://github.com/gauravbasantani/proposal-kit">Proposal kit on GitHub</a></li>
+    <li><a href="https://gauravbasantani.github.io/proposal-kit/">Storybook</a></li>
+    <li><a href="https://gauravbasantani.github.io/fresh-agent-testing/">How I test AI with fresh agents</a></li>
+  </ul>
+</section>
+
+<footer>
+  <p>Gaurav Basantani · Product designer and design engineer · Tempe, Arizona</p>
+  <ul class="links">
+    <li><a href="https://gauravbasantani.com">gauravbasantani.com</a></li>
+    <li><a href="https://www.linkedin.com/in/gauravbasantani/">LinkedIn</a></li>
+    <li><a href="https://github.com/gauravbasantani">GitHub</a></li>
+    <li><a href="mailto:gbasanta@asu.edu">gbasanta@asu.edu</a></li>
+  </ul>
+  <p>Personal notes. Not an official ASU page.</p>
+</footer>
+
+</div>
+</body>
+</html>
